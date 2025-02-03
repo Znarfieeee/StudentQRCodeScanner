@@ -1,0 +1,58 @@
+{%extends 'base.html'%}
+{% block content %}
+    <div class="w3-display-container" style="height: 79vh; margin-left: 50px;">
+        <div class="w3-bar w3-padding" style="display: flex;">
+            <img src="/static/images/back.png" alt="BACK" onclick="backIndexx()" style="cursor: pointer; width: 30px; height: auto;">
+            <h4 style="margin-left: 30px;"><b>Attendance Checker</b></h4>
+        </div>
+        <div class="w3-card-2 w3-center " style="width: 1400px; height: auto; ">
+            <div class="w3-padding">
+                <h4 id="localTimeDate" style="color: black; margin-left: 650px;"></h4>
+            </div>
+            <table class="w3-table-all" >    
+                <tr>
+                    <th>IDNO</th>
+                    <th>LASTNAME</th>
+                    <th>FIRSTNAME</th>
+                    <th>COURSE</th>
+                    <th>LEVEL</th>
+                    <th>TIME LOGGED</th>
+                </tr>
+                {% for student in students %}
+                    <tr>
+                        <td>{{ student[0] }}</td>
+                        <td>{{ student[1] }}</td>
+                        <td>{{ student[2] }}</td>
+                        <td>{{ student[3] }}</td>
+                        <td>{{ student[4] }}</td>
+                        <td>{{ student[5] }}</td>
+                    </tr>
+                {% endfor %}
+
+            </table>
+
+        </div>
+    </div>
+    <script>
+        function backIndexx() {
+            window.location.href = '/';
+        }
+
+
+        function updateDateTime() {
+            const now = new Date();
+
+            const optionsDate = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            const currentDate = now.toLocaleDateString('en-US', optionsDate);
+
+            const optionsTime = { hour: '2-digit', minute: '2-digit'};
+            const currentTime = now.toLocaleTimeString('en-US', optionsTime);
+
+            const fullDateTime = `${currentDate}  ${currentTime}`;
+
+            document.getElementById('localTimeDate').textContent = fullDateTime;
+        }
+    </script>
+
+
+{%endblock%}

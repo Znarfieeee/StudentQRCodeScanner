@@ -1,0 +1,52 @@
+.nav ul {
+    list-style-type: none;
+    padding-left: 965px;
+}
+.nav ul li {
+    display: inline;
+    margin-right: 15px;
+    text-decoration: none;
+}
+
+.nav ul li a {
+    position: relative;
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav ul li a::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -2px;
+    width: 0;
+    height: 2px;
+    background-color: currentColor;
+    transform: translateX(-50%);
+    transition: width 0.3s ease-in-out;
+}
+
+.nav ul li a:hover::after {
+    width: 100%;
+    
+}
+
+.navbar{
+    display: flex;
+}
+
+.tibol{
+    margin-left: 50px;
+}
+
+.btn21 {
+    margin-left: 600px;
+}
+
+.mn-btn {
+    margin-left: 150px;
+}
+
+#catt {
+    z-index: 9999; 
+}

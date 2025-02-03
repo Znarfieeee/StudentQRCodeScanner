@@ -1,0 +1,451 @@
+{%extends 'base.html'%}
+{% block content %}
+    <div class="w3-display-container" style="height: 79vh;">
+            <div class="w3-bar w3-padding navbar" style="width: 1400px; margin-left: 50px; color: white;">
+                <h4><b>Student List</b></h4>   
+                <div class="nav">
+                    <ul>
+                        <li><a onclick="toggleAttendance(), updateDateTime()" style="cursor: pointer; text-decoration: none;">View Attendance</a></li>
+                        <li><a onclick="showAddStudentModal()" style="cursor: pointer;">+ADD</a></li>
+                        <li><a href="{{ url_for('logout') }}" style="text-decoration: none;">LOGOUT</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="w3-card-2 w3-center tibol" style="width: 1400px; height: auto;"> 
+                <table class="w3-table-all ">
+                    <tr>
+                        <th>IDNO</th>
+                        <th>LASTNAME</th>
+                        <th>FIRSTNAME</th>
+                        <th>COURSE</th>
+                        <th>LEVEL</th>
+                        <th>ACTION</th>
+                    </tr>
+                    {%for student in students%}
+                        <tr  onclick="showStudentInfoModal('{{ student.idno }}', '{{ student.lastname }}', '{{ student.firstname }}', '{{ student.course }}', '{{ student.level }}', '{{ student.image }}')">
+                            <td style="cursor: pointer;" ><u>{{ student['idno'] }}</u></td> 
+                            <td>{{ student['lastname']|upper }}</td>
+                            <td>{{ student['firstname']|upper }}</td>
+                            <td>{{ student['course']|upper }}</td>
+                            <td>{{ student['level'] }}</td>
+                            <td>
+                                <button class="w3-button w3-green" onclick="showEditStudentModal()">Edit</button>
+                                <button class="w3-button"style="background-color:#dd5272; color: white;" onclick="event.stopPropagation(); deleteStudent('{{ student.idno }}');">X</button>
+                            </td>
+                        </tr>
+                    {%endfor%}
+                </table>
+            </div>
+            <div id="studentModal" class="w3-modal" style="display: none;">
+                <div class="w3-modal-content w3-card-4 w3-round-xlarge" style="width: 90%; top: -100px;">
+                    <header class="w3-container" style="background-color:#b6bee3;">
+                        <h2  style="color: white;">Student Details</h2>
+                    </header>
+                    <div class="w3-row">
+                        <div class="w3-container w3-padding w3-half" id="modalContent">
+                            <p>
+                                <div id="my_camera" style="width:320px; height:240px;margin:auto"></div>
+                            </p>
+                            <p>
+                                <h6>IDNO*</h6>
+                                <input type="text" name="idno" id="idno" class="w3-input w3-border" required>
+                            </p>
+                            <p>
+                                <h6>LASTNAME*</h6>
+                                <input type="text" name="lastname" id="lastname" class="w3-input w3-border">
+                            </p>
+                            <p>
+                                <h6>FIRSTNAME*</h6>
+                                <input type="text" name="firstname" id="firstname" class="w3-input w3-border">
+                            </p>
+                            <p>
+                                <h6>COURSE*</h6>
+                                <select name="course" id="course" class="w3-select w3-border">
+                                    <option value="" disabled selected>Select Course</option>
+                                    <option value="BSIT">Bachelor of Science in Information Technology</option>
+                                    <option value="BSCE">Bachelor of Science in Civil Engineering</option>
+                                    <option value="BSCPE">Bachelor of Science in Computer Engineering</option>
+                                    <option value="BSCJ">Bachelor of Science in Criminal Justice</option>
+                                    <option value="BSCA">Bachelor of Science in Custom Administration</option>
+                                    <option value="BSBA">Bachelor of Science in Business Ads</option>
+                                    <option value="BSED">Bachelor Secondary Education</option>
+                                    <option value="BSSW">Bachelor of Science in Social Work</option>
+                                </select>
+                            </p>
+                            <p>
+                                <h6>LEVEL*</h6>
+                                <select name="level" id="level" class="w3-select w3-border">
+                                    <option value="" disabled selected>Select Level</option>
+                                    <option value="1">First Year</option>
+                                    <option value="2">Second Year</option>
+                                    <option value="3">Third Year</option>
+                                    <option value="4">Fourth Year</option>
+                                </select>
+                            </p>
+                        </div>
+                        <div class="w3-container w3-padding w3-half" id="initAddStud">
+                            <p class="snapshot-container">
+                                <div class="box1" style="display: flex; padding: 10px; margin-left: 50px;">
+                                    <div id="my_result" style="width: 320px;"></div>
+                                    <div id="qode" style="width: 240px;">
+                                        <img id="qr_Image" style="height: 240px; width: 240px;"/>
+                                    </div>
+                                </div>
+                            </p>
+                            <p>
+                                <strong>IDNO &emsp; &emsp; &nbsp; &nbsp;: </strong> <span id="init_idno" style="text-transform: uppercase;"></span>
+                            </p>
+                            <p>
+                                <strong>Last Name &nbsp; :</strong> <span id="init_lastname" style="text-transform: uppercase;"></span>
+                            </p>
+                            <p>
+                                <strong>First Name &nbsp; :</strong> <span id="init_firstname" style="text-transform: uppercase;"></span>
+                            </p>
+                            <p>
+                                <strong>Course &nbsp; &nbsp; &nbsp; &nbsp; :</strong> <span id="init_course" style="text-transform: uppercase;"></span>
+                            </p>
+                            <p>
+                                <strong>Level &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;:</strong> <span id="init_level" style="text-transform: uppercase;"></span>
+                            </p>
+                            
+                        </div>
+                        <footer class="w3-container w3-padding">
+                            <div class="mn-btn">
+                                <input type="hidden" id="isUpdate" value="false">
+                                <div class="w3-bar">
+                                    <button class="w3-button w3-blue w3-bar-item" onclick="take_snapshot()">Snap</button>
+                                    <button class="w3-button w3-green w3-bar-item" onclick="retake_snapshot()">Retake</button>
+                                    <button class="w3-button w3-blue w3-bar-item btn21" onclick="saveinformation()">SAVE</button>
+                                    <button class="w3-button w3-red w3-bar-item btn2" onclick="closeModal()">Cancel</button>
+                                </div>
+                            </div>
+                        </footer>
+                    </div>
+                </div>
+            </div>
+            <div id="studentInfoModal" class="w3-modal" style="display: none;">
+                <div class="w3-modal-content w3-card-4 w3-round-xlarge" style="width: 50%; top: -100px;">
+                    <header class="w3-container" style="background-color:#b6bee3;">
+                        <h2  style="color: white;">Student Information</h2>
+                    </header>
+                    <div class="w3-container w3-padding" id="studentInfoContent">
+                        <p class="w3-center">
+                            <div class="box1" style="display: flex; padding: 10px; margin-left: 50px;">
+                                <img id="info_image" src="" alt="No Photo Uploaded!" style="width:320px; height:240px;margin:auto" />
+                                <img id="info_qr_Image" style="height: 240px; width: 240px;"/>
+                            </div>
+                        </p>
+                        <p><strong>IDNO &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;:</strong> <span id="info_idno" style="text-transform: uppercase;"> </span></p>
+                        <p><strong>Last Name &nbsp; :</strong> <span id="info_lastname" style="text-transform: uppercase;"></span></p>
+                        <p><strong>First Name &nbsp;:</strong> <span id="info_firstname" style="text-transform: uppercase;"></span></p>
+                        <p><strong>Course &nbsp; &nbsp; &nbsp; &nbsp; :</strong> <span id="info_course" style="text-transform: uppercase;"></span></p>
+                        <p><strong>Level &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;:</strong> <span id="info_level" style="text-transform: uppercase;"></span></p>
+                    </div>
+                    <div class="w3-center w3-padding">
+                        <button class="w3-button w3-blue w3-padding" style="width: 150px; height: 50px;" onclick="showEditStudentModal()">Edit</button>
+                        <button class="w3-button w3-green w3-padding" style="width: 150px; height: 50px;" onclick="closeStudentInfoModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        Webcam.set({
+			width: 320,
+			height: 240,
+			dest_width: 320,
+			dest_height: 240,
+			image_format: 'jpeg',
+			jpeg_quality: 90,
+			force_flash: false,
+			flip_horiz: true,
+			fps: 45
+		});
+		function take_snapshot() {
+            Webcam.snap(function(data_uri) {
+                document.getElementById('my_result').innerHTML = "<img id='imageprev' src='" + data_uri + "'/>";
+                document.getElementById('my_result').style.display = 'block';
+
+                var idno = document.getElementById('idno').value;
+                var lastname = document.getElementById('lastname').value;
+                var firstname = document.getElementById('firstname').value;
+                var course = document.getElementById('course').value;
+                var level = document.getElementById('level').value;
+
+                document.getElementById('idno').innerHTML = "";
+
+                updateStudentPreview()
+
+                if (!idno){
+                    alert("IDNO is required before taking snapshot!");
+                    document.getElementById('my_result').innerHTML = "";
+                    document.getElementById('my_result').style.display = 'none';
+                }
+
+                var formData = new FormData();
+                formData.append("idno", idno);
+                formData.append("lastname", lastname);
+                formData.append("firstname", firstname);
+                formData.append("course", course);
+                formData.append("level", level);
+                
+                fetch('/generate_qrcode', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then (response => response.text())
+                    .then (qrFilename => {
+                         var qrImage = document.getElementById('qr_Image');
+                        qrImage.src = `/static/images/${qrFilename}`;
+                        qrImage.style.display = 'block';
+                    })
+                    .catch (error => {
+                         alert ("Error generating QR Code. Please try again");
+                    })              
+            });
+        }
+
+        function retake_snapshot() {
+            document.getElementById('my_camera').style.display = 'block';
+            Webcam.attach('#my_camera');
+        }
+        
+        function toggleAttendance() { 
+            const attendanceElement = document.getElementById('vAttendance');
+            if (attendanceElement.style.display === 'none' || !attendanceElement.style.display) {
+            window.location.href = "/view_attendance";
+            } else {
+            attendanceElement.style.display = 'none';
+            }
+        }
+     
+        function updateStudentPreview() {
+            var idno = document.getElementById('idno').value;
+            var lastname = document.getElementById('lastname').value;
+            var firstname = document.getElementById('firstname').value;
+            var course = document.getElementById('course').value;
+            var level = document.getElementById('level').value;
+
+            document.getElementById('init_idno').innerText = idno || "N/A";
+            document.getElementById('init_lastname').innerText = lastname || "N/A";
+            document.getElementById('init_firstname').innerText = firstname || "N/A";
+            document.getElementById('init_course').innerText = course || "N/A";
+            document.getElementById('init_level').innerText = level || "N/A";
+        }
+
+        function showAddStudentModal() {
+            // Reset Inputs
+            var data_uri = document.getElementById('imageprev')? document.getElementById('imageprev').src : null
+            document.getElementById("isUpdate").value = "false";
+            document.getElementById('idno').value="";
+            document.getElementById('lastname').value="";
+            document.getElementById('firstname').value="";
+            document.getElementById('course').value="";
+            document.getElementById('level').value="";
+            document.getElementById('idno').removeAttribute('readonly');
+
+            document.getElementById('my_camera').style.display = 'block';
+            document.getElementById('my_result').style.display = 'none';
+            document.getElementById('studentModal').style.display = 'block';
+            Webcam.attach( '#my_camera' );
+        }
+
+
+		async function saveinformation() {
+			var data_uri = document.getElementById('imageprev')? document.getElementById('imageprev').src : null;
+			var idno = document.getElementById('idno').value;
+			var lastname = document.getElementById('lastname').value;
+			var firstname = document.getElementById('firstname').value;
+			var course = document.getElementById('course').value;
+			var level = document.getElementById('level').value;
+            var isUpdate = document.getElementById('isUpdate').value === "true";    
+
+            if (!data_uri) {
+                alert("Please take a snapshot first!");
+                return;
+            };
+
+            if (!idno || !lastname || !firstname || !course || !level) {
+                alert("Please fill all fields");
+                return;
+            };
+
+            var formData = new FormData();
+            formData.append('idno', idno);
+            formData.append('lastname', lastname);
+            formData.append('firstname', firstname);
+            formData.append('course', course);
+            formData.append('level', level);
+
+            try {
+                var webcamResponse = await fetch(data_uri);
+                var webcamBlob = await webcamResponse.blob();
+                formData.append('webcam', webcamBlob, `${idno}.jpeg`);
+
+                var qr_Image = document.getElementById('qr_Image') ? document.getElementById('qr_Image').src : null;
+                if (qr_Image) {
+                    var qrResponse = await fetch(qr_Image);
+                    var qrBlob = await qrResponse.blob();
+                    formData.append('qr_Image', qrBlob, `${idno}_qr.png`);
+                }
+
+                var response = await fetch('/saveinformation', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    alert("Student Information saved successfully!");
+                    location.reload();
+                } else {
+                    alert("Failed to save information. Please try again.");
+                }
+            } catch (error) {
+                alert("An error occurred while saving the information.");
+            }
+        }
+
+        function checkidno(idno) {
+            return fetch(`/checkidno/${idno}`)
+                .then(response => response.text())
+                .then(data => data.exists);
+        }
+
+        function saveOrUpdateStudent(isUpdate, formData, idno) {
+            checkidno(idno).then(exists => {
+                if (exists && !isUpdate) {
+                    alert ("IDNO already exists. Please try again with a UNIQUE IDNO!")
+                }
+                else {
+                    var url = isUpdate ? `/updatestudent/${idno}` : "/saveinformation";
+
+                    fetch(url, {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(response => response.text())
+                    .then(result => {
+                        alert(isUpdate ? "Student updated successfully" : "New student added successfully");
+                        location.reload();
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        alert("Unsuccessful");
+                    });
+                }
+            })
+
+        }
+
+        function showEditStudentModal() {
+            var qrImageSrc = document.getElementById("info_qr_image")
+            var imageSrc = document.getElementById("info_image").src;
+            var idno = document.getElementById("info_idno").innerText;
+            var lastname = document.getElementById("info_lastname").innerText;
+            var firstname = document.getElementById("info_firstname").innerText;
+            var course = document.getElementById("info_course").innerText;
+            var level = document.getElementById("info_level").innerText;
+
+            document.getElementById("qr_Image").value = qrImageSrc
+            document.getElementById("isUpdate").value = "true";
+            document.getElementById("idno").value = idno;
+            document.getElementById("lastname").value = lastname;
+            document.getElementById("firstname").value = firstname;
+            document.getElementById("course").value = course;
+            document.getElementById("level").value = level;
+
+            document.getElementById('idno').setAttribute('readonly', 'readonly'); 
+
+            var courseDropdown = document.getElementById("course");
+            courseDropdown.value = course;
+
+            var levelDropdown = document.getElementById("level");
+            levelDropdown.value = level;
+
+            if (imageSrc) {
+                document.getElementById("my_result").innerHTML = `<img id="imageprev" src="${imageSrc}" />`;
+                document.getElementById("my_result").style.display = 'block';
+                document.getElementById("my_camera").style.display = 'none';
+            } else {
+                document.getElementById("my_camera").style.display = 'block';
+                document.getElementById("my_result").style.display = 'none';
+                Webcam.attach("#my_camera");
+            }
+
+            document.getElementById("studentInfoModal").style.display = 'none';
+            document.getElementById("studentModal").style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('studentModal').style.display = 'none';
+            Webcam.reset();
+        }
+
+        function showStudentInfoModal(idno, lastname, firstname, course, level, imageFilename) {
+            document.getElementById('info_idno').innerText = idno;
+            document.getElementById('info_lastname').innerText = lastname;
+            document.getElementById('info_firstname').innerText = firstname;
+            document.getElementById('info_course').innerText = course;
+            document.getElementById('info_level').innerText = level;
+            
+            var qrImageUrl = `/static/images/${idno}_qr.png`;
+            var qrImageElement = document.getElementById('info_qr_Image');
+            fetch(qrImageUrl, { method: 'HEAD' })
+            .then((response) => {
+                if (response.ok) {
+                    qrImageElement.src = qrImageUrl;
+                    qrImageElement.style.display = 'block';
+                } else {
+                    qrImageElement.style.display = 'none';
+                    console.warn("QR code image not found for IDNO:", idno);
+                }
+            })
+            .catch((error) => {
+                console.error("Error loading QR code:", error);
+                qrImageElement.style.display = 'none';
+            });
+
+            var imageUrl = `/static/images/${imageFilename}`;
+            document.getElementById('info_image').src = imageUrl;
+
+            document.getElementById('studentInfoModal').style.display = 'block';
+        }
+
+        function closeStudentInfoModal() {
+            document.getElementById('studentInfoModal').style.display = 'none';
+        }
+
+
+        function deleteStudent(idno) {
+
+            if (confirm("Are you sure you want to delete this student?")) {
+                fetch(`/delete_student/${idno}`, {
+                    method: 'POST',
+                })
+                .then((response => response.text()))
+                .then(data => {
+                    alert("Student with ID " + idno + " deleted.");
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("Failed to delete student.");
+                });
+            }
+        }
+  
+        function updateDateTime() {
+            const now = new Date();
+
+            const optionsDate = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            const currentDate = now.toLocaleDateString('en-US', optionsDate);
+
+            const optionsTime = { hour: '2-digit', minute: '2-digit'};
+            const currentTime = now.toLocaleTimeString('en-US', optionsTime);
+
+            const fullDateTime = `${currentDate}  ${currentTime}`;
+
+            document.getElementById('localTimeDate').textContent = fullDateTime;
+        }
+  </script>
+{%endblock%}

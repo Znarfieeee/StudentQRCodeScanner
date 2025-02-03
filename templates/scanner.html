@@ -1,0 +1,145 @@
+    {%extends 'base.html'%}
+    {%block content%}
+        <div class="w3-display-container" style="height: 79vh;">
+            <div class="w3-bar w3-padding w3-center" style="width: 1400px; margin-left: 50px; color: white;">
+                <h4 class="w3-center"><b>Scanner</b></h4>   
+                <div class="w3-card-2 w3-display-middle" style="width: 530px; height: auto; top:53%;">
+                    <div id="scanner" class="qscanner w3-padding">
+                        <div id="qreader" style="width: 500px; height: 500px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="studentInfo" class="w3-modal" style="display: none;">
+                <div class="w3-modal-content w3-card-4 w3-round-xlarge" style="width: 50%; top: 20px;">
+                    <header class="w3-container" style="background-color:#b6bee3;">
+                        <h2  style="color: white;">Student Information</h2>
+                    </header>
+                    <div class="w3-container w3-padding" id="studentInfoContent">
+                        <p class="w3-center">
+                            <div class="box1" style="display: flex; padding: 10px; margin-left: 50px;">
+                                <img id="info_image" src="" alt="No Photo Uploaded!" style="width:320px; height:240px;margin:auto" />
+                                <img id="info_qr_Image" style="height: 240px; width: 240px;"/>
+                            </div>
+                        </p>
+                        <p><strong>IDNO &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;:</strong> <span id="info_idno" style="text-transform: uppercase;"> </span></p>
+                        <p><strong>Last Name &nbsp; :</strong> <span id="info_lastname" style="text-transform: uppercase;"></span></p>
+                        <p><strong>First Name &nbsp;:</strong> <span id="info_firstname" style="text-transform: uppercase;"></span></p>
+                        <p><strong>Course &nbsp; &nbsp; &nbsp; &nbsp; :</strong> <span id="info_course" style="text-transform: uppercase;"></span></p>
+                        <p><strong>Level &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;:</strong> <span id="info_level" style="text-transform: uppercase;"></span></p>
+                    </div>
+                    <footer class="w3-padding w3-center">
+                        <button class="w3-button " style="background-color:#b6bee3; color: white;" onclick="proceed()">Proceed</button>
+                    </footer>
+                </div>
+            </div>
+        </div>
+		<script src="https://unpkg.com/html5-qrcode"></script>
+        <script>
+            let scannedId = "";
+            function proceed(){
+                if (!scannedId) {
+                    alert("No QR code scanned.");
+                    return;
+                }
+
+                fetch(`/log_attendance/${scannedId}`, { method: "POST" })
+                    .then((logResponse) => logResponse.json())
+                    .then((logData) => {
+                        if (logData.success) {
+                            alert("Attendance logged successfully.");
+                            window.location.href = "/";
+                        } else {
+                            alert(`Error logging attendance: ${logData.message}`);
+                        }
+                    })
+                    .catch((logError) => {
+                        console.error("Error logging attendance:", logError);
+                    });
+
+            }
+
+            function showStudentInfo(idno, lastname, firstname, course, level, imageFilename) {
+            document.getElementById('info_idno').innerText = idno;
+            document.getElementById('info_lastname').innerText = lastname;
+            document.getElementById('info_firstname').innerText = firstname;
+            document.getElementById('info_course').innerText = course;
+            document.getElementById('info_level').innerText = level;
+            
+            var qrImageUrl = `/static/images/${idno}_qr.png`;
+            var qrImageElement = document.getElementById('info_qr_Image');
+            fetch(qrImageUrl, { method: 'HEAD' })
+            .then((response) => {
+                if (response.ok) {
+                    qrImageElement.src = qrImageUrl;
+                    qrImageElement.style.display = 'block';
+                } else {
+                    qrImageElement.style.display = 'none';
+                    console.warn("QR code image not found for IDNO:", idno);
+                }
+            })
+            .catch((error) => {
+                console.error("Error loading QR code:", error);
+                qrImageElement.style.display = 'none';
+            });
+
+            var imageUrl = `/static/images/${imageFilename}`;
+            document.getElementById('info_image').src = imageUrl;
+
+            document.getElementById('studentInfo').style.display = 'block';
+        }
+
+            function scanner() {
+                var html5QrCode = new Html5Qrcode("qreader"); 
+
+                html5QrCode.start(
+                    { facingMode: "user" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText, decodedResult) => {
+                        // QR Code successfully scanned
+                        scannedId = decodedText; // Store scanned ID globally
+                        html5QrCode.stop(); // Stop scanning
+
+                        // Fetch student details
+                        fetch(`/checkidno/${decodedText}`)
+                            .then((response) => response.json())
+                            .then((data) => {
+                                if (data.exists) {
+                                    fetch(`/getstudent/${decodedText}`)
+                                        .then((response) => response.json())
+                                        .then((student) => {
+                                            showStudentInfo(
+                                                student.idno,
+                                                student.lastname,
+                                                student.firstname,
+                                                student.course,
+                                                student.level,
+                                                student.image
+                                            );
+                                        })
+                                        .catch((error) => {
+                                            console.error("Error fetching student details:", error);
+                                        });
+
+                                
+                            } else {
+                                alert("Student not found.");
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error checking ID:", error);
+                        });
+                        
+                    },
+                    (errorMessage) => {
+                        console.warn(`QR Code scan error: ${errorMessage}`);
+                    }
+                ).catch((error) => {
+                    console.error("Camera initialization failed:", error);
+                    alert("Unable to access camera. Please check your permissions.");
+                });
+            }
+            document.addEventListener("DOMContentLoaded", () => {
+                scanner();
+            });
+        </script>
+    {%endblock%}

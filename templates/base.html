@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" content="ie-edge">
+		<link rel="stylesheet" href="../static/css/w3.css">
+		<link rel="stylesheet" href="../static/css/styles.css">
+		<script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+		<script src="../static/js/webcam.min.js"></script>
+		<title>Student Information</title>
+	</head>
+	<body >
+		<div class="w3-bar w3-card-4 w3-light-grey w3-container w3-padding w3-white" style="position: sticky; top:0;">
+ 			<h3 class="w3-bar-item">
+				<img src="static/images/psits.png" style="height: 50px; width: auto;">
+				<b style="padding: 10px; font-size: 25px;">{{ pagetitle }}</b>
+			</h3>
+		</div>
+		<div class="w3-container w3-padding" style="background-color:#b6bee3;">
+			{% block content %}
+			{% endblock %}
+		</div>
+		<div class="w3-center w3-display-bottommiddle w3-container ">
+			<div style="color: black; background-color: #fff; height: 50px; width: 100vw; justify-content: center; align-items: center; display: flex;">&copy; Copyright 2024 Mari Franz H. Espelita, Marianne Mae Calderon. All Rights Reserved.</div>
+		</div>
+	</body>
+</html>
